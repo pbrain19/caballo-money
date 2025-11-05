@@ -9,8 +9,11 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Shield, Zap, Bot } from "lucide-react";
-import { useState, useEffect } from "react";
+import { TrendingUp, Shield, Bot, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useActiveAccount, ConnectEmbed } from "thirdweb/react";
+import { client, arcChain } from "@/lib/thirdwebClient";
+import { inAppWallet } from "thirdweb/wallets";
 
 export default function Home() {
   const assets = [
@@ -22,6 +25,9 @@ export default function Home() {
   ];
 
   const [currentAssetIndex, setCurrentAssetIndex] = useState(0);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const account = useActiveAccount();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -29,6 +35,22 @@ export default function Home() {
     }, 2500);
     return () => clearInterval(interval);
   }, [assets.length]);
+
+  const scrollToCarousel = () => {
+    carouselRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  };
+
+  const handleConnect = () => {
+    setShowConnectModal(true);
+  };
+
+  const handleDashboard = () => {
+    // TODO: Navigate to dashboard
+    window.location.href = "/dashboard";
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-black dark:to-zinc-950">
@@ -44,11 +66,53 @@ export default function Home() {
               className="h-10 w-auto"
             />
           </div>
-          <Button variant="outline" size="sm">
-            Sign In
-          </Button>
+          {account ? (
+            <Button
+              variant="default"
+              size="sm"
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+              onClick={handleDashboard}
+            >
+              Go to Dashboard
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={handleConnect}>
+              Sign In
+            </Button>
+          )}
         </div>
       </header>
+
+      {/* Connect Modal */}
+      {showConnectModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+            <button
+              onClick={() => setShowConnectModal(false)}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              <X className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+            </button>
+            <div className="p-6">
+              <ConnectEmbed
+                client={client}
+                chain={arcChain}
+                wallets={[
+                  inAppWallet({
+                    auth: {
+                      options: ["google"],
+                    },
+                  }),
+                ]}
+                onConnect={(wallet) => {
+                  console.log("Connected to", wallet);
+                  setShowConnectModal(false);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <main className="container mx-auto px-4 pt-24 pb-12">
@@ -73,16 +137,28 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <Button
-              size="lg"
-              className="text-base font-semibold px-8 py-6 bg-amber-500 hover:bg-amber-600 text-white"
-            >
-              Get Started
-            </Button>
+            {account ? (
+              <Button
+                size="lg"
+                className="text-base font-semibold px-8 py-6 bg-amber-500 hover:bg-amber-600 text-white"
+                onClick={handleDashboard}
+              >
+                Go to Dashboard
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                className="text-base font-semibold px-8 py-6 bg-amber-500 hover:bg-amber-600 text-white"
+                onClick={handleConnect}
+              >
+                Get Started
+              </Button>
+            )}
             <Button
               size="lg"
               variant="outline"
               className="text-base font-semibold px-8 py-6 border-amber-500 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-600 dark:hover:bg-amber-950/30"
+              onClick={scrollToCarousel}
             >
               Learn More
             </Button>
@@ -90,7 +166,7 @@ export default function Home() {
         </div>
 
         {/* Carousel Section */}
-        <div className="max-w-4xl mx-auto mb-16">
+        <div ref={carouselRef} className="max-w-4xl mx-auto mb-16 scroll-mt-24">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-zinc-900 dark:text-zinc-50 mb-8">
             How Caballo Works
           </h2>
