@@ -114,22 +114,22 @@ export default function Home() {
                     <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-full flex items-center justify-center mb-6">
                       <Bot className="w-8 h-8" />
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-bold mb-4">AI Finds the Best Opportunities</h3>
+                    <h3 className="text-2xl md:text-3xl font-bold mb-4">AI Finds the Best Strategies</h3>
                     <p className="text-lg md:text-xl text-indigo-50 leading-relaxed mb-4">
-                      Our AI scans thousands of trading opportunities 24/7, looking for:
+                      Our AI analyzes thousands of liquidity pools 24/7, looking for:
                     </p>
                     <ul className="space-y-2 text-indigo-50">
                       <li className="flex items-start gap-2">
                         <span className="text-indigo-200 mt-1">•</span>
-                        <span>Where your assets can earn the most</span>
+                        <span>The best liquidity pools with high volume</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-indigo-200 mt-1">•</span>
-                        <span>Safe, high-volume trading pairs</span>
+                        <span>Smart hedging strategies to protect your assets</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-indigo-200 mt-1">•</span>
-                        <span>The best exchange rates and fees</span>
+                        <span>Optimal positions using leverage when needed</span>
                       </li>
                     </ul>
                   </div>
@@ -203,7 +203,7 @@ export default function Home() {
             <ul className="space-y-3 text-amber-800 dark:text-amber-400">
               <li className="flex items-start gap-2">
                 <span className="text-amber-500 mt-1">✓</span>
-                <span>Earn more from trading volume automatically</span>
+                <span>Earn from liquidity pools and smart hedging</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-amber-500 mt-1">✓</span>
