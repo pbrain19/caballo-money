@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThirdwebProvider } from "thirdweb/react";
 import { AgentContextProvider } from './context/AgentContext';
+import { TranscriptProvider } from './context/TranscriptContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,9 @@ export default function RootLayout({
       >
         <ThirdwebProvider>
           <AgentContextProvider>
-            {children}
+            <TranscriptProvider>
+              {children}
+            </TranscriptProvider>
           </AgentContextProvider>
         </ThirdwebProvider>
       </body>
