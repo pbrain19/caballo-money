@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@elevenlabs/react": "^0.9.1",
+    "@openai/agents": "^0.3.0",
     "@prisma/client": "^6.19.0",
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
@@ -20,7 +22,8 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "tailwind-merge": "^3.3.1",
-    "thirdweb": "^5.111.2"
+    "thirdweb": "^5.111.2",
+    "zod": "^3.25.75"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

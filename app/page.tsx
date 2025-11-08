@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   Carousel,
   CarouselContent,
@@ -8,12 +7,11 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Button } from "@/components/ui/button";
+import { Button, Link } from "@/components/ui/button";
 import { TrendingUp, Shield, Bot, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { useActiveAccount, ConnectEmbed } from "thirdweb/react";
-import { client, arcChain } from "@/lib/thirdwebClient";
-import { inAppWallet } from "thirdweb/wallets";
+import Footer from '@/components/ui/footer';
+import Header from '@/components/ui/header';
 
 export default function Home() {
   const assets = [
@@ -25,9 +23,8 @@ export default function Home() {
   ];
 
   const [currentAssetIndex, setCurrentAssetIndex] = useState(0);
-  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [showConnectModal, setShowConnectModal] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const account = useActiveAccount();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -43,76 +40,10 @@ export default function Home() {
     });
   };
 
-  const handleConnect = () => {
-    setShowConnectModal(true);
-  };
-
-  const handleDashboard = () => {
-    // TODO: Navigate to dashboard
-    window.location.href = "/dashboard";
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-black dark:to-zinc-950">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <Image
-              src="/logo.png"
-              alt="Caballo AI"
-              width={120}
-              height={40}
-              className="h-10 w-auto"
-            />
-          </div>
-          {account ? (
-            <Button
-              variant="default"
-              size="sm"
-              className="bg-amber-500 hover:bg-amber-600 text-white"
-              onClick={handleDashboard}
-            >
-              Go to Dashboard
-            </Button>
-          ) : (
-            <Button variant="outline" size="sm" onClick={handleConnect}>
-              Sign In
-            </Button>
-          )}
-        </div>
-      </header>
-
-      {/* Connect Modal */}
-      {showConnectModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-md w-full mx-4">
-            <button
-              onClick={() => setShowConnectModal(false)}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-            >
-              <X className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
-            </button>
-            <div className="p-6">
-              <ConnectEmbed
-                client={client}
-                chain={arcChain}
-                wallets={[
-                  inAppWallet({
-                    auth: {
-                      options: ["google"],
-                    },
-                  }),
-                ]}
-                onConnect={(wallet) => {
-                  console.log("Connected to", wallet);
-                  setShowConnectModal(false);
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <Header />
 
       {/* Hero Section */}
       <main className="container mx-auto px-4 pt-24 pb-12">
@@ -137,23 +68,13 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            {account ? (
-              <Button
-                size="lg"
-                className="text-base font-semibold px-8 py-6 bg-amber-500 hover:bg-amber-600 text-white"
-                onClick={handleDashboard}
-              >
-                Go to Dashboard
-              </Button>
-            ) : (
-              <Button
-                size="lg"
-                className="text-base font-semibold px-8 py-6 bg-amber-500 hover:bg-amber-600 text-white"
-                onClick={handleConnect}
-              >
-                Get Started
-              </Button>
-            )}
+            <Link
+              size="lg"
+              className="text-base font-semibold px-8 py-6 bg-amber-500 hover:bg-amber-600 text-white"
+              href="/convo"
+            >
+              Go to Dashboard
+            </Link>
             <Button
               size="lg"
               variant="outline"
@@ -353,11 +274,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 mt-20">
-        <div className="container mx-auto px-4 py-8 text-center text-sm text-zinc-600 dark:text-zinc-400">
-          <p>&copy; 2025 Caballo. Making your money work smarter.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
