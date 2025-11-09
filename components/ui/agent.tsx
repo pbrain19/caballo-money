@@ -28,7 +28,8 @@ export default function Agent({ openAIEphemeralKey }: AgentProps) {
     tokenAddress: USDC_TOKEN_ADDRESS, // Important: Check USDC token, not native token
   });
 
-  const { connect, disconnect, sendUserText, mute } = useRealtimeSession();
+  const { connect, disconnect, sendUserText, mute, interrupt } =
+    useRealtimeSession();
 
   const [showAddress, setShowAddress] = useState(false);
   const [depositDetected, setDepositDetected] = useState(false);
@@ -149,6 +150,13 @@ export default function Agent({ openAIEphemeralKey }: AgentProps) {
         currentBalance > initialBalanceRef.current
       ) {
         console.log("✅ DEPOSIT DETECTED! Triggering success flow...");
+
+        // CRITICAL: Stop the agent completely - it's no longer needed
+        console.log("🛑 Stopping agent completely before MP3 playback");
+        interrupt(); // Stop any current speech
+        mute(true); // Mute the microphone
+        setTimeout(() => disconnect(), 500); // Disconnect after a brief delay
+
         setDepositDetected(true);
         setShowAddress(false);
         setAgentSilenced(false); // Reactivate orb visuals
@@ -170,6 +178,34 @@ export default function Agent({ openAIEphemeralKey }: AgentProps) {
       }
     } catch (error) {
       console.error("❌ Error checking balance:", error);
+    }
+  };
+
+  // Manual proceed function - bypasses balance check for testing
+  const manualProceed = () => {
+    console.log("⚡ Manual proceed triggered - bypassing balance check");
+
+    // CRITICAL: Stop the agent completely - it's no longer needed
+    console.log("🛑 Stopping agent completely before MP3 playback");
+    interrupt(); // Stop any current speech
+    mute(true); // Mute the microphone
+    setTimeout(() => disconnect(), 500); // Disconnect after a brief delay
+
+    setDepositDetected(true);
+    setShowAddress(false);
+    setAgentSilenced(false); // Reactivate orb visuals
+
+    const audio = new Audio("/deposit-confirmation.mp3");
+    audio.volume = 1.0;
+    audio
+      .play()
+      .then(() => console.log("🔊 Playing deposit confirmation audio"))
+      .catch((err) => console.log("Audio playback failed:", err));
+
+    setInvestedBalance(200);
+
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
     }
   };
 
@@ -237,6 +273,12 @@ export default function Agent({ openAIEphemeralKey }: AgentProps) {
             `  Increase: ${(newBalance - initialBalanceRef.current).toString()}`
           );
 
+          // CRITICAL: Stop the agent completely - it's no longer needed
+          console.log("🛑 Stopping agent completely before MP3 playback");
+          interrupt(); // Stop any current speech
+          mute(true); // Mute the microphone
+          setTimeout(() => disconnect(), 500); // Disconnect after a brief delay
+
           // Deposit detected!
           setDepositDetected(true);
           setShowAddress(false);
@@ -280,40 +322,49 @@ export default function Agent({ openAIEphemeralKey }: AgentProps) {
     balance,
     refetchBalance,
     setInvestedBalance,
+    interrupt,
+    mute,
+    disconnect,
   ]);
 
   // Progressive steps animation after deposit is detected
+  // Timed to match the 70-second MP3 duration
   useEffect(() => {
     if (!depositDetected) return;
 
-    const steps = [
-      "Great — I see you've finished depositing!",
-      "Now, let me scan across DeFi networks to find the pools offering the best yields. I determine this by checking how full each pool is and how much trading volume is flowing through it.",
-      "Alright, I've found one that matches your risk profile — we'll be depositing into a USDC–ETH pool on the Base network.",
-      "First, I'll use Circle's CCTP to securely transfer your USDC across chains. CCTP is a trusted protocol built by Circle to move USDC between networks safely.",
-      "Okay, funds received! Now I'm swapping your tokens into USDC and ETH. Liquidity pools require both assets in equal proportion, so I'm making sure everything lines up perfectly.",
-      "Next, I'm minting your deposit token — think of it as a digital receipt that represents your position and can be redeemed or transferred anytime.",
-      "And… done! Your position is live and already earning yield in ETH and USDC on Base.",
-      "From here, I'll keep monitoring the markets. If prices swing or a better pool appears, I'll automatically rebalance your position for optimal returns. You're all set — sit back and let me handle the rest. Have a great day!",
-    ];
+    // Timing synchronized with MP3 audio (70 seconds total)
+    // 0s - Step 0: confirming deposit (immediate)
+    // 10s - Step 1: checking defi network
+    // 13s - Step 2: found based on risk profile
+    // 20s - Step 3: using circle cctp
+    // 30s - Step 4: funds received in base chain / swapping tokens
+    // 45s - Step 5: minting lp
+    // 54s - Step 6: done (should show the new position)
+    // 60s - Step 7: final message & show position card
 
-    let stepIndex = 0;
-    setCurrentStep(0);
+    setCurrentStep(0); // Immediately show step 0
 
-    const intervalId = setInterval(() => {
-      stepIndex++;
-      if (stepIndex < steps.length) {
-        setCurrentStep(stepIndex);
-      } else {
-        clearInterval(intervalId);
-        // Show position preview after all steps are done
-        setTimeout(() => {
-          setShowPosition(true);
-        }, 1000);
-      }
-    }, 3000); // 3 seconds between steps
+    const timeouts: NodeJS.Timeout[] = [];
 
-    return () => clearInterval(intervalId);
+    // Schedule each step at the precise time
+    timeouts.push(setTimeout(() => setCurrentStep(1), 10000)); // 10s
+    timeouts.push(setTimeout(() => setCurrentStep(2), 13000)); // 13s
+    timeouts.push(setTimeout(() => setCurrentStep(3), 20000)); // 20s
+    timeouts.push(setTimeout(() => setCurrentStep(4), 30000)); // 30s
+    timeouts.push(setTimeout(() => setCurrentStep(5), 45000)); // 45s
+    timeouts.push(setTimeout(() => setCurrentStep(6), 54000)); // 54s
+    timeouts.push(
+      setTimeout(() => {
+        setCurrentStep(7); // Final step
+        // Show position preview 2 seconds after final step
+        setTimeout(() => setShowPosition(true), 2000);
+      }, 60000)
+    ); // 60s
+
+    return () => {
+      // Clean up all timeouts
+      timeouts.forEach((timeout) => clearTimeout(timeout));
+    };
   }, [depositDetected]);
 
   // Increment earnings every second for demo effect
@@ -496,13 +547,21 @@ export default function Agent({ openAIEphemeralKey }: AgentProps) {
                   {copiedAddress ? "✓ Copied!" : "Copy Address"}
                 </button>
 
-                {/* Manual Check Button for Testing */}
-                <button
-                  onClick={manualCheckBalance}
-                  className="w-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 text-sm"
-                >
-                  🔍 Manual Check Balance
-                </button>
+                {/* Manual Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={manualCheckBalance}
+                    className="flex-1 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 text-sm"
+                  >
+                    🔍 Check Balance
+                  </button>
+                  <button
+                    onClick={manualProceed}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 text-sm"
+                  >
+                    ⚡ Skip & Proceed
+                  </button>
+                </div>
 
                 {lastCheckedBalance !== "0" && (
                   <div className="text-xs text-zinc-600 dark:text-zinc-400 text-center bg-zinc-100 dark:bg-zinc-800 p-2 rounded">
